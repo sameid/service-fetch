@@ -1,0 +1,19 @@
+{
+  "name": "react-kichiri",
+  "version": "0.0.1",
+  "description": "Promise Based wrapper for any Swagger defined API.",
+  "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DemandHub/react-kichiri.git"
+  },
+  "author": "Sameid Usmani",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DemandHub/react-kichiri/issues"
+  },
+  "homepage": "https://github.com/DemandHub/react-kichiri#readme",
+  "dependencies": {
+    "axios": "0.17.0"
+  }
+}
