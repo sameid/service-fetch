@@ -6,6 +6,7 @@ import _ from 'underscore';
 
 const Kichiri = {
 	api: {},
+	host: null,
 	doc: null,
 
 	/**
@@ -23,6 +24,8 @@ const Kichiri = {
 		if (!json || json === '') {
 			return {};
 		}
+
+		self.host = host || json.host + json.basePath;
 
 		self.doc = json;
 		self.init();
@@ -55,7 +58,7 @@ const Kichiri = {
 
 				// Create the promise based function for the route, based on the namespace and operation id. (eg. this.api.[messages].[list])
 				(self.api[namespace])[innerValue.operationId] = function(data, queryParams, authToken) {
-					return self.trigger(key, innerKey, data, authToken);
+					return self.trigger(key, innerKey, data, queryParams, authToken);
 				}
 
 			})
@@ -77,7 +80,7 @@ const Kichiri = {
 
 		return axios({
 			method: method, 
-			url: self.doc.host + utils.replaceInPath(path, data),
+			url: self.host + utils.replaceInPath(path, data),
 			headers: { 
 				'Content-Type': 'application/json', 
 				'Authorization' : authToken || ""
