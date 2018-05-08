@@ -1,9 +1,11 @@
+'use strict';
+
 import utils from './Utils';
 import axios from 'axios';
+import _ from 'underscore';
 
 const Kichiri = {
 	api: {},
-	host: null,
 	doc: null,
 
 	/**
@@ -12,11 +14,10 @@ const Kichiri = {
 	 * @param json {Object}
 	 * @return {Object}
 	 */
-	build(json) {
+	build(json, host) {
 		var self = this;
 
 		self.api = {};
-		self.host = null;
 		self.doc = null;
 
 		if (!json || json === '') {
@@ -24,9 +25,9 @@ const Kichiri = {
 		}
 
 		self.doc = json;
-
-		return self.init();
-	}
+		self.init();
+		return self.api;
+	},
 
 	/**
 	 * Create the api interface for calling different routes.
@@ -36,8 +37,8 @@ const Kichiri = {
 		var self = this;
 
 		// Iterate through all the paths defined in the swagger api doc.
-		self.doc.paths.forEach(function(value, key) {
-			value.forEach(function(innerValue, innerKey) {
+		_.each(self.doc.paths, function(value, key) {
+			_.each(value, function(innerValue, innerKey) {
 
 				// Get the namespace for the current route promise that needs to be created. (eg. this.api.[messages])
 				var namespace = utils.getNamespace(innerValue, key, self.doc.basePath);
@@ -54,12 +55,12 @@ const Kichiri = {
 
 				// Create the promise based function for the route, based on the namespace and operation id. (eg. this.api.[messages].[list])
 				(self.api[namespace])[innerValue.operationId] = function(data, queryParams, authToken) {
-					return self.trigger(key, innerKey, data, queryParams, authToken);
+					return self.trigger(key, innerKey, data, authToken);
 				}
 
 			})
 		})		
-	}
+	},
 
 	/**
 	 * Create the trigger function for when an operationId is called.
@@ -76,10 +77,10 @@ const Kichiri = {
 
 		return axios({
 			method: method, 
-			url: self.host + utils.replaceInPath(path, data),
+			url: self.doc.host + utils.replaceInPath(path, data),
 			headers: { 
 				'Content-Type': 'application/json', 
-				'Authorization' : authToken 
+				'Authorization' : authToken || ""
 			},
 			data: data || {},
 			params: queryParams || {},

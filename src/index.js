@@ -1,3 +1,5 @@
+'use strict';
+
 import kichiri from './Kichiri'
 
 var kichiriApi = null;
