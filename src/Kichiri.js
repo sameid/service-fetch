@@ -25,7 +25,8 @@ const Kichiri = {
 			return {};
 		}
 
-		self.host = host || json.host + json.basePath;
+		var scheme = json.schemes.indexOf('https') != -1 ? 'https://' : 'http://';
+		self.host = scheme + (host || json.host + (json.basePath || ""));
 
 		self.doc = json;
 		self.init();
