@@ -3,19 +3,21 @@
 import utils from './Utils';
 import axios from 'axios';
 import _ from 'underscore';
+import withQuery from 'with-';
 
 const Kichiri = {
 	api: {},
 	host: null,
 	doc: null,
+	useNativeFetch: false,
 
 	/**
 	 * Initialize Kichiri
-	 * 
+	 *
 	 * @param json {Object}
 	 * @return {Object}
 	 */
-	build(json, host) {
+	build(json, host, useNativeFetch) {
 		var self = this;
 
 		self.api = {};
@@ -25,8 +27,10 @@ const Kichiri = {
 			return {};
 		}
 
+		self.useNativeFetch = useNativeFetch;
+
 		var scheme = json.schemes.indexOf('https') != -1 ? 'https://' : 'http://';
-		self.host = scheme + (host || json.host + (json.basePath || ""));
+		self.host = host || (scheme + json.host + (json.basePath || ""));
 
 		self.doc = json;
 		self.init();
@@ -35,7 +39,7 @@ const Kichiri = {
 
 	/**
 	 * Create the api interface for calling different routes.
-	 * 
+	 *
 	 */
 	init() {
 		var self = this;
@@ -63,12 +67,12 @@ const Kichiri = {
 				}
 
 			})
-		})		
+		})
 	},
 
 	/**
 	 * Create the trigger function for when an operationId is called.
-	 * 
+	 *
 	 * @param path {String} - the full path of the route (eg. /some/special/endpoint/{param})
 	 * @param method {String} - the method for the route (ie. POST, GET, PUT, DELETE ...)
 	 * @param data {Object} - object for the data that needs to be passed.
@@ -79,11 +83,29 @@ const Kichiri = {
 	trigger(path, method, data, queryParams, authToken) {
 		var self = this;
 
+		let url = self.host + utils.replaceInPath(path, data);
+
+		if (method.toLowerCase() === 'get' && self.useNativeFetch) {
+			return fetch(withQuery(url, queryParams), {
+				method: method,
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': authToken || ""
+				}
+			}).then(function (response) {
+				return response.json();
+			}).then(function (data) {
+				return {
+					data: data
+				}
+			})
+		}
+
 		return axios({
-			method: method, 
+			method: method,
 			url: self.host + utils.replaceInPath(path, data),
-			headers: { 
-				'Content-Type': 'application/json', 
+			headers: {
+				'Content-Type': 'application/json',
 				'Authorization' : authToken || ""
 			},
 			data: data || {},
