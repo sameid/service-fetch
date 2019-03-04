@@ -3,39 +3,29 @@
 import utils from './Utils';
 import axios from 'axios';
 import _ from 'underscore';
-import withQuery from 'with-';
+import withQuery from 'with-query';
 
-const Kichiri = {
-	api: {},
-	host: null,
-	doc: null,
-	useNativeFetch: false,
+class Kichiri {
 
-	/**
-	 * Initialize Kichiri
-	 *
-	 * @param json {Object}
-	 * @return {Object}
-	 */
-	build(json, host, useNativeFetch) {
-		var self = this;
-
-		self.api = {};
-		self.doc = null;
+	constructor(json, host, useNativeFetch) {
+		this.api = {};
+		this.host = null;
+		this.doc = null;
+		this.useNativeFetch = false;
 
 		if (!json || json === '') {
 			return {};
 		}
 
-		self.useNativeFetch = useNativeFetch;
+		this.useNativeFetch = useNativeFetch;
 
 		var scheme = json.schemes.indexOf('https') != -1 ? 'https://' : 'http://';
-		self.host = host || (scheme + json.host + (json.basePath || ""));
+		this.host = host || (scheme + json.host + (json.basePath || ""));
 
-		self.doc = json;
-		self.init();
-		return self.api;
-	},
+		this.doc = json;
+		this.init();
+		// return this.api;
+	}
 
 	/**
 	 * Create the api interface for calling different routes.
@@ -68,7 +58,7 @@ const Kichiri = {
 
 			})
 		})
-	},
+	}
 
 	/**
 	 * Create the trigger function for when an operationId is called.

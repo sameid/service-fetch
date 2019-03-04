@@ -1,6 +1,6 @@
 {
   "name": "react-kichiri",
-  "version": "0.1.5",
+  "version": "0.1.9",
   "description": "Promise Based wrapper for any Swagger defined API.",
   "main": "dist/index.js",
   "repository": {
