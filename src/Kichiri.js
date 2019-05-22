@@ -4,17 +4,30 @@ import utils from './Utils';
 import axios from 'axios';
 import _ from 'underscore';
 import withQuery from 'with-query';
+import yaml from 'js-yaml';
+import fs from 'fs';
 
 class Kichiri {
 
-	constructor(json, host, useNativeFetch) {
+	constructor(yamlFile, host, useNativeFetch) {
 		this.api = {};
 		this.host = null;
 		this.doc = null;
 		this.useNativeFetch = false;
 
-		if (!json || json === '') {
+		if (!yamlFile || yamlFile === '') {
 			return {};
+		}
+
+		var json = null;
+
+		try {
+			json = yaml.safeLoad(fs.readFileSync(process.cwd() + yamlFile), 'utf8');
+		}
+		catch (error) {
+			console.log('An error occured trying to parse DemandHub API YAML.');
+			console.log(error);
+			return;
 		}
 
 		this.useNativeFetch = useNativeFetch;
@@ -24,7 +37,7 @@ class Kichiri {
 
 		this.doc = json;
 		this.init();
-		// return this.api;
+		return this.api;
 	}
 
 	/**
