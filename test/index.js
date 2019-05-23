@@ -1,5 +1,6 @@
 const kichiri1 = require('../dist');
-const Kichiri = new kichiri1.default('/test/api.yaml', "http://localhost:3001");
+const api = require('./api');
+const Kichiri = new kichiri1.default(api, "http://localhost:3001");
 
 console.log(Kichiri);
 

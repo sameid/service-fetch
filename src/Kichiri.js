@@ -9,25 +9,25 @@ import fs from 'fs';
 
 class Kichiri {
 
-	constructor(yamlFile, host, useNativeFetch) {
+	constructor(yamlString, host, useNativeFetch) {
 		this.api = {};
 		this.host = null;
 		this.doc = null;
 		this.useNativeFetch = false;
 
-		if (!yamlFile || yamlFile === '') {
+		if (!yamlString || yamlString === '') {
 			return {};
 		}
 
 		var json = null;
 
 		try {
-			json = yaml.safeLoad(fs.readFileSync(process.cwd() + yamlFile), 'utf8');
+			json = yaml.safeLoad(yamlString, 'utf8');
 		}
 		catch (error) {
 			console.log('An error occured trying to parse DemandHub API YAML.');
 			console.log(error);
-			return;
+			return null;
 		}
 
 		this.useNativeFetch = useNativeFetch;
