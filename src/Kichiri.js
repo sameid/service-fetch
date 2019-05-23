@@ -9,11 +9,12 @@ import fs from 'fs';
 
 class Kichiri {
 
-	constructor(yamlString, host, useNativeFetch) {
+	constructor(yamlString, host, useNativeFetch, ) {
 		this.api = {};
 		this.host = null;
 		this.doc = null;
 		this.useNativeFetch = false;
+		this.interceptors = [];
 
 		if (!yamlString || yamlString === '') {
 			return {};
@@ -37,7 +38,40 @@ class Kichiri {
 
 		this.doc = json;
 		this.init();
+
+		this.initializeInterceptors();
+		this.api.addUnauthorizedInterceptor = this.addUnauthorizedInterceptor;
+
 		return this.api;
+	}
+
+	/**
+	 * Uses Axios to initialize a list of interceptors that should be called on 401 response
+	 *
+	 */
+	initializeInterceptors() {
+		axios.interceptors.response.use((response) => {
+			return response;
+		}, (error) => {
+			if (error.response.status === 401) {
+				this.interceptors.forEach(function (cb) {
+					if (typeof cb === 'function') {
+						cb();
+					}
+				})
+			}
+		})
+	}
+
+	/**
+	 * Appends a Callback function to the list of local interceptors
+	 *
+	 * @param {Function} cb
+	 */
+	addUnauthorizedInterceptor(cb) {
+		if (typeof cb === 'function') {
+			this.interceptors.push(cb);
+		}
 	}
 
 	/**
