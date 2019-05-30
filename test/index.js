@@ -1,15 +1,19 @@
 const kichiri1 = require('../dist');
 const api = require('./api');
-const Kichiri = new kichiri1.default(api, "http://localhost:3001");
+const KichiriInstance = new kichiri1.default(api, "http://localhost:3001/api");
 
-console.log(Kichiri);
+let Kichiri = KichiriInstance.api;
 
-// kichiri
-// 	.user
-// 	.login()
-// 	.then(function(response) {
-// 		console.log(response);
-// 	})
-// 	.catch(function(error) {
-// 		console.log(error);
-// 	})
+Kichiri.addErrorInterceptor(function(error) {
+    console.log("hello", error);
+})
+
+Kichiri
+	.user
+	.login()
+	.then(function(response) {
+		console.log(response);
+	})
+	.catch(function(error) {
+		console.log(error);
+	})

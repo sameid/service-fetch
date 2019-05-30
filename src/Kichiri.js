@@ -5,7 +5,6 @@ import axios from 'axios';
 import _ from 'underscore';
 import withQuery from 'with-query';
 import yaml from 'js-yaml';
-import fs from 'fs';
 
 class Kichiri {
 
@@ -15,6 +14,7 @@ class Kichiri {
 		this.doc = null;
 		this.useNativeFetch = false;
 		this.interceptors = [];
+		this.axiosInstance = axios.create();
 
 		if (!yamlString || yamlString === '') {
 			return {};
@@ -40,9 +40,9 @@ class Kichiri {
 		this.init();
 
 		this.initializeInterceptors();
-		this.api.addUnauthorizedInterceptor = this.addUnauthorizedInterceptor;
+		this.api.interceptors = this.interceptors;
+		this.api.addErrorInterceptor = this.addErrorInterceptor;
 
-		return this.api;
 	}
 
 	/**
@@ -50,16 +50,15 @@ class Kichiri {
 	 *
 	 */
 	initializeInterceptors() {
-		axios.interceptors.response.use((response) => {
+		this.axiosInstance.interceptors.response.use((response) => {
 			return response;
 		}, (error) => {
-			if (error.response.status === 401) {
 				this.interceptors.forEach(function (cb) {
 					if (typeof cb === 'function') {
-						cb();
+						cb(error);
 					}
 				})
-			}
+
 		})
 	}
 
@@ -68,7 +67,7 @@ class Kichiri {
 	 *
 	 * @param {Function} cb
 	 */
-	addUnauthorizedInterceptor(cb) {
+	addErrorInterceptor(cb) {
 		if (typeof cb === 'function') {
 			this.interceptors.push(cb);
 		}
@@ -130,6 +129,15 @@ class Kichiri {
 					'Authorization': authToken || ""
 				}
 			}).then(function (response) {
+
+				if (!response.ok) {
+					self.interceptors.forEach(function (cb) {
+						if (typeof cb === 'function') {
+							cb(response);
+						}
+					})
+				}
+
 				return response.json();
 			}).then(function (data) {
 				return {
@@ -138,7 +146,7 @@ class Kichiri {
 			})
 		}
 
-		return axios({
+		return this.axiosInstance({
 			method: method,
 			url: self.host + utils.replaceInPath(path, data),
 			headers: {

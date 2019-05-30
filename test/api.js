@@ -41,116 +41,16 @@ security:
 tags:
   - name: user
     description: User namespace.
-  - name: review_request
-    description: Review_request namespace.
-  - name: review
-    description: Review namespace.
-  - name: review_insight
-    description: Review insight namespace.
-  - name: message
-    description: Message namespace.
-  - name: location
-    description: Location namespace.
-  - name: company
-    description: Company namespace.
-  - name: message_template
-    description: Message Template Namespace
-  - name: email
-    description: Email Management Namespace
-  - name: review_sites
-    description: Review Site Namespace
-  - name: timezones
-    description: Timezone Namespace
-  - name: password
-    description: Password Namespace
-  - name: contacts
-    description: Contact Namespace
-  - name: recommendations
-    description: Recommendations Namespace
-  - name: synced_appointment
-    description: Synced Appointment Namespace
-  - name: crm
-    description: CRM Namespace
-  - name: admin
-    description: Admin Namespace
-  - name: audit_log
-    description: Audit Log Namespace
-  - name: push
-    description: Push Namespace
-  - name: reviews_widget
-    description: Reviews Widget Namespace
-  - name: stats
-    description: Statistics Namespace
-  - name: api_keys
-    description: API Keys Namespace
-  - name: customer_success
-    description: Customer Success Namespace
 
 paths:
 
-  /admin/messenger/stats:
+  /user/login:
     get:
       description: Get messenger stats
-      tags: [ admin ]
-      operationId: stats
+      tags: [ user ]
+      operationId: login
 
-      security: [
-        authorization: [ default ]
-      ]
-
-      responses:
-        "200":
-          description: Success
-          schema:
-            $ref: "#/definitions/Response"
-        default:
-          description: Error
-          schema:
-            $ref: "#/definitions/Response"
-
-  /stats/messenger:
-    get:
-      description: Get overall Stats for the messenger
-      tags: [ stats ]
-      operationId: getMessengerStats
-
-      security: [
-        authorization: [ default ]
-      ]
-
-      parameters:
-      - in: query
-        name: favoritesOnly
-        type: boolean
-        required: true
-        description: favorite only toggle
-
-      responses:
-        "200":
-          description: Success
-          schema:
-            $ref: "#/definitions/Response"
-        default:
-          description: Error
-          schema:
-            $ref: "#/definitions/Response"
-
-  /stats/webchat:
-    get:
-      description: Get overall Stats for the webchat
-      tags: [ stats ]
-      operationId: getWebchatStats
-
-      security: [
-        authorization: [ default ]
-      ]
-
-      parameters:
-      - in: query
-        name: favoritesOnly
-        type: boolean
-        required: true
-        description: favorite only toggle
+      security: []
 
       responses:
         "200":
