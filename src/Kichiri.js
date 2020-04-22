@@ -8,7 +8,7 @@ import yaml from 'js-yaml';
 
 class Kichiri {
 
-	constructor(yamlString, host, useNativeFetch, ) {
+	constructor(yamlString, host, useNativeFetch) {
 		this.api = {};
 		this.host = null;
 		this.doc = null;
@@ -50,15 +50,15 @@ class Kichiri {
 	 *
 	 */
 	initializeInterceptors() {
-		this.axiosInstance.interceptors.response.use((response) => {
+		axios.interceptors.response.use((response) => {
 			return response;
 		}, (error) => {
-				this.interceptors.forEach(function (cb) {
-					if (typeof cb === 'function') {
-						cb(error);
-					}
-				})
-
+			this.interceptors.forEach(function (cb) {
+				if (typeof cb === 'function') {
+					cb(error);
+				}
+			})
+			return Promise.reject(error);
 		})
 	}
 
@@ -146,7 +146,7 @@ class Kichiri {
 			})
 		}
 
-		return this.axiosInstance({
+		return axios({
 			method: method,
 			url: self.host + utils.replaceInPath(path, data),
 			headers: {
