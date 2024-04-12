@@ -46,6 +46,9 @@ const Utils = {
 		// Remove any curly braces from the namespace if there exist
 		namespace = namespace.replace(/[{}]/g, "");
 
+		// Capitalize the first character
+		namespace = namespace.charAt(0).toUpperCase() + namespace.slice(1) + "Service";
+
 		return namespace;
 	}
 

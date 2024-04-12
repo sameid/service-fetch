@@ -15,6 +15,7 @@ class Kichiri {
 		this.useNativeFetch = false;
 		this.interceptors = [];
 		this.axiosInstance = axios.create();
+		this.authToken = null;
 
 		if (!yamlString || yamlString === '') {
 			return {};
@@ -43,6 +44,10 @@ class Kichiri {
 		this.api.interceptors = this.interceptors;
 		this.api.addErrorInterceptor = this.addErrorInterceptor;
 
+	}
+
+	setAuthToken(authToken) {
+		this.authToken = authToken;
 	}
 
 	/**
@@ -98,12 +103,85 @@ class Kichiri {
 				}
 
 				// Create the promise based function for the route, based on the namespace and operation id. (eg. this.api.[messages].[list])
-				(self.api[namespace])[innerValue.operationId] = function(data, queryParams, authToken) {
-					return self.trigger(key, innerKey, data, queryParams, authToken);
+				(self.api[namespace])[innerValue.operationId] = function({ params = {}, body = {}, query = {}, authToken = null } = {}) {
+					return self.trigger({ 
+						path: key, 
+						method: innerKey, 
+						params, 
+						body, 
+						query, 
+						authToken
+					});
 				}
 
 			})
 		})
+	}
+
+	async performFetchCall({ path, method, data, query, authToken }) {
+		let self = this;
+
+		if (!authToken) {
+			authToken = self.authToken
+		}
+
+		let url = self.host + utils.replaceInPath(path, data);
+		let endpoint = withQuery(url, query);
+
+		try {
+			let response = await fetch(endpoint, {
+				method: method,
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': authToken || ""
+				}
+			});
+			
+			if (!response.ok) {
+				self.interceptors.forEach(function (cb) {
+					if (typeof cb === 'function') {
+						cb(response);
+					}
+				});
+
+				throw new Error(response);
+			}
+
+			let json = await response.json();
+
+			return { response: json, error: null, more: json };
+
+		} catch (error) {
+			return { response: null, error, more: null };
+		}
+
+	}
+
+	async performAxiosCall({ path, method, data, query, authToken }) {
+		let self = this;
+		let url = self.host + utils.replaceInPath(path, data);
+
+		if (!authToken) {
+			authToken = self.authToken
+		}
+
+		try {
+			let response = await axios({
+				method: method,
+				url: url,
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization' : authToken || ""
+				},
+				data: data || {},
+				params: query || {},
+			});
+
+			return { response: data, error: null, more: response };
+
+		} catch (error) {
+			return { response: null, error, more: null };
+		}
 	}
 
 	/**
@@ -116,46 +194,18 @@ class Kichiri {
 	 * @param authToken {String} - Token used to authenticate the api back end.
 	 * @return {Promise}
 	 */
-	trigger(path, method, data, queryParams, authToken) {
+	async trigger({ path, method, params, body, query, authToken }) {
+
 		var self = this;
 
-		let url = self.host + utils.replaceInPath(path, data);
+		// Merge params and body into data object
+		let data = { ...params, ...body };
 
 		if (method.toLowerCase() === 'get' && self.useNativeFetch) {
-			return fetch(withQuery(url, queryParams), {
-				method: method,
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': authToken || ""
-				}
-			}).then(function (response) {
-
-				if (!response.ok) {
-					self.interceptors.forEach(function (cb) {
-						if (typeof cb === 'function') {
-							cb(response);
-						}
-					})
-				}
-
-				return response.json();
-			}).then(function (data) {
-				return {
-					data: data
-				}
-			})
+			return self.performFetchCall({ path, method, data, query, authToken });
 		}
 
-		return axios({
-			method: method,
-			url: self.host + utils.replaceInPath(path, data),
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization' : authToken || ""
-			},
-			data: data || {},
-			params: queryParams || {},
-		});
+		return self.performAxiosCall({ path, method, data, query, authToken });
 	}
 
 }
