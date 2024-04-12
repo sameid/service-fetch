@@ -103,14 +103,15 @@ class Kichiri {
 				}
 
 				// Create the promise based function for the route, based on the namespace and operation id. (eg. this.api.[messages].[list])
-				(self.api[namespace])[innerValue.operationId] = function({ params = {}, body = {}, query = {}, authToken = null } = {}) {
+				(self.api[namespace])[innerValue.operationId] = function({ params = {}, body = {}, query = {}, authToken = null, headers = {} } = {}) {
 					return self.trigger({ 
 						path: key, 
 						method: innerKey, 
 						params, 
 						body, 
 						query, 
-						authToken
+						authToken,
+						headers
 					});
 				}
 
@@ -118,12 +119,9 @@ class Kichiri {
 		})
 	}
 
-	async performFetchCall({ path, method, data, query, authToken }) {
+	async performFetchCall({ path, method, data, query, headers }) {
 		let self = this;
 
-		if (!authToken) {
-			authToken = self.authToken
-		}
 
 		let url = self.host + utils.replaceInPath(path, data);
 		let endpoint = withQuery(url, query);
@@ -131,10 +129,7 @@ class Kichiri {
 		try {
 			let response = await fetch(endpoint, {
 				method: method,
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': authToken || ""
-				}
+				headers: headers
 			});
 			
 			if (!response.ok) {
@@ -157,22 +152,15 @@ class Kichiri {
 
 	}
 
-	async performAxiosCall({ path, method, data, query, authToken }) {
+	async performAxiosCall({ path, method, data, query, headers }) {
 		let self = this;
 		let url = self.host + utils.replaceInPath(path, data);
-
-		if (!authToken) {
-			authToken = self.authToken
-		}
 
 		try {
 			let response = await axios({
 				method: method,
 				url: url,
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization' : authToken || ""
-				},
+				headers: headers,
 				data: data || {},
 				params: query || {},
 			});
@@ -192,20 +180,30 @@ class Kichiri {
 	 * @param data {Object} - object for the data that needs to be passed.
 	 * @param queryParams {Object} - object for the query params that could be passed.
 	 * @param authToken {String} - Token used to authenticate the api back end.
+	 * @param headers {String} - Token used to authenticate the api back end.
 	 * @return {Promise}
 	 */
-	async trigger({ path, method, params, body, query, authToken }) {
+	async trigger({ path, method, params, body, query, authToken, headers = {} }) {
 
 		var self = this;
 
 		// Merge params and body into data object
 		let data = { ...params, ...body };
 
-		if (method.toLowerCase() === 'get' && self.useNativeFetch) {
-			return self.performFetchCall({ path, method, data, query, authToken });
+		if (!authToken) {
+			authToken = self.authToken
 		}
 
-		return self.performAxiosCall({ path, method, data, query, authToken });
+		Object.assign(headers, {
+			'Content-Type': 'application/json',
+			'Authorization': authToken || ""
+		})
+
+		if (method.toLowerCase() === 'get' && self.useNativeFetch) {
+			return self.performFetchCall({ path, method, data, query, headers });
+		}
+
+		return self.performAxiosCall({ path, method, data, query, headers });
 	}
 
 }
