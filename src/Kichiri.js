@@ -98,8 +98,8 @@ class Kichiri {
 				}
 
 				// Create the promise based function for the route, based on the namespace and operation id. (eg. this.api.[messages].[list])
-				(self.api[namespace])[innerValue.operationId] = function(data, queryParams, authToken) {
-					return self.trigger(key, innerKey, data, queryParams, authToken);
+				(self.api[namespace])[innerValue.operationId] = function(data, queryParams, authToken, headers = {}) {
+					return self.trigger(key, innerKey, data, queryParams, authToken, headers);
 				}
 
 			})
@@ -116,18 +116,20 @@ class Kichiri {
 	 * @param authToken {String} - Token used to authenticate the api back end.
 	 * @return {Promise}
 	 */
-	trigger(path, method, data, queryParams, authToken) {
+	trigger(path, method, data, queryParams, authToken, headers = {}) {
 		var self = this;
 
 		let url = self.host + utils.replaceInPath(path, data);
 
+		Object.assign(headers, {
+			'Content-Type': 'application/json',
+			'Authorization': authToken || ""
+		})
+
 		if (method.toLowerCase() === 'get' && self.useNativeFetch) {
 			return fetch(withQuery(url, queryParams), {
 				method: method,
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': authToken || ""
-				}
+				headers: headers
 			}).then(function (response) {
 
 				if (!response.ok) {
@@ -149,10 +151,7 @@ class Kichiri {
 		return axios({
 			method: method,
 			url: self.host + utils.replaceInPath(path, data),
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization' : authToken || ""
-			},
+			headers: headers,
 			data: data || {},
 			params: queryParams || {},
 		});
