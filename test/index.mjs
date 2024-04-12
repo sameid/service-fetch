@@ -14,9 +14,3 @@ let main = async () => {
 }
 
 main();
-
-
-// demandhub.test.device@gmail.com
-// !_DemandHub2020
-
-// "react-native-sound": "0.11.2",
