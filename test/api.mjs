@@ -1,4 +1,4 @@
-module.exports = `swagger: "2.0"
+export default `swagger: "2.0"
 info:
   version: "0.0.1"
   title: DemandHub - platform

@@ -15,6 +15,7 @@ class Kichiri {
 		this.useNativeFetch = false;
 		this.interceptors = [];
 		this.axiosInstance = axios.create();
+		this.authToken = null;
 
 		if (!yamlString || yamlString === '') {
 			return {};
@@ -43,6 +44,10 @@ class Kichiri {
 		this.api.interceptors = this.interceptors;
 		this.api.addErrorInterceptor = this.addErrorInterceptor;
 
+	}
+
+	setAuthToken(authToken) {
+		this.authToken = authToken;
 	}
 
 	/**
@@ -98,12 +103,73 @@ class Kichiri {
 				}
 
 				// Create the promise based function for the route, based on the namespace and operation id. (eg. this.api.[messages].[list])
-				(self.api[namespace])[innerValue.operationId] = function(data, queryParams, authToken, headers = {}) {
-					return self.trigger(key, innerKey, data, queryParams, authToken, headers);
+				(self.api[namespace])[innerValue.operationId] = function({ params = {}, body = {}, query = {}, authToken = null, headers = {} } = {}) {
+					return self.trigger({ 
+						path: key, 
+						method: innerKey, 
+						params, 
+						body, 
+						query, 
+						authToken,
+						headers
+					});
 				}
 
 			})
 		})
+	}
+
+	async performFetchCall({ path, method, data, query, headers }) {
+		let self = this;
+
+
+		let url = self.host + utils.replaceInPath(path, data);
+		let endpoint = withQuery(url, query);
+
+		try {
+			let response = await fetch(endpoint, {
+				method: method,
+				headers: headers
+			});
+			
+			if (!response.ok) {
+				self.interceptors.forEach(function (cb) {
+					if (typeof cb === 'function') {
+						cb(response);
+					}
+				});
+
+				throw new Error(response);
+			}
+
+			let json = await response.json();
+
+			return { response: json, error: null, more: json };
+
+		} catch (error) {
+			return { response: null, error, more: null };
+		}
+
+	}
+
+	async performAxiosCall({ path, method, data, query, headers }) {
+		let self = this;
+		let url = self.host + utils.replaceInPath(path, data);
+
+		try {
+			let response = await axios({
+				method: method,
+				url: url,
+				headers: headers,
+				data: data || {},
+				params: query || {},
+			});
+
+			return { response: data, error: null, more: response };
+
+		} catch (error) {
+			return { response: null, error, more: null };
+		}
 	}
 
 	/**
@@ -114,12 +180,19 @@ class Kichiri {
 	 * @param data {Object} - object for the data that needs to be passed.
 	 * @param queryParams {Object} - object for the query params that could be passed.
 	 * @param authToken {String} - Token used to authenticate the api back end.
+	 * @param headers {String} - Token used to authenticate the api back end.
 	 * @return {Promise}
 	 */
-	trigger(path, method, data, queryParams, authToken, headers = {}) {
+	async trigger({ path, method, params, body, query, authToken, headers = {} }) {
+
 		var self = this;
 
-		let url = self.host + utils.replaceInPath(path, data);
+		// Merge params and body into data object
+		let data = { ...params, ...body };
+
+		if (!authToken) {
+			authToken = self.authToken
+		}
 
 		Object.assign(headers, {
 			'Content-Type': 'application/json',
@@ -127,34 +200,10 @@ class Kichiri {
 		})
 
 		if (method.toLowerCase() === 'get' && self.useNativeFetch) {
-			return fetch(withQuery(url, queryParams), {
-				method: method,
-				headers: headers
-			}).then(function (response) {
-
-				if (!response.ok) {
-					self.interceptors.forEach(function (cb) {
-						if (typeof cb === 'function') {
-							cb(response);
-						}
-					})
-				}
-
-				return response.json();
-			}).then(function (data) {
-				return {
-					data: data
-				}
-			})
+			return self.performFetchCall({ path, method, data, query, headers });
 		}
 
-		return axios({
-			method: method,
-			url: self.host + utils.replaceInPath(path, data),
-			headers: headers,
-			data: data || {},
-			params: queryParams || {},
-		});
+		return self.performAxiosCall({ path, method, data, query, headers });
 	}
 
 }
