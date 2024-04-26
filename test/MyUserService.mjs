@@ -1,4 +1,4 @@
-import { loadServices, getServices, setAuthToken } from "react-kichiri";
+import { loadServices, getServices, setAuthToken } from "service-fetch";
 import api from "./api.mjs";
 
 loadServices({
