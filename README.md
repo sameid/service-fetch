@@ -48,10 +48,10 @@ import api from "./api.js";
 // Use the loadServices helper function to initialize the API
 loadServices({
 	apiDpc: api,
-	host: "http://localhost:3001/api
+	host: "http://localhost:3001/api"
 });
 
-// . . .
+// ...
 
 // Once you've loaded the Swagger Doc and the services within, you can consider your Swagger namespaces as services and you can call upon their operations as needed.
 
