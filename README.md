@@ -61,9 +61,9 @@ let username = "test@gmail.com";
 let password = "my-special-password";
 
 // UserService.login() translates to a POST request to the /api/user/login endpoint
-let { response, error } = await UserService.login({ body: { username, password } }); 
+let { data, error } = await UserService.login({ body: { username, password } }); 
 
-// Perform any UI operations necessary using the response and error returned values...
+// Perform any UI operations necessary using the data and error returned values...
 
 ```
 

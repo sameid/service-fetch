@@ -1,6 +1,6 @@
 {
 	"name": "service-fetch",
-	"version": "0.1.4",
+	"version": "0.1.6",
 	"description": "Promise Based wrapper for any Swagger defined API.",
 	"main": "dist/index.js",
 	"repository": {
@@ -28,6 +28,7 @@
 		"@babel/preset-env": "^7.24.0"
 	},
 	"scripts": {
+		"deploy": "npm run compile; npm publish --access public",
 		"compile": "./node_modules/.bin/babel src -d dist",
 		"test": "npm run compile; npm link; npm link service-fetch; node ./test/index.mjs"
 	}

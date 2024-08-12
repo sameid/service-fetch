@@ -144,10 +144,10 @@ class Kichiri {
 
 			let json = await response.json();
 
-			return { response: json, error: null, more: json };
+			return { data: json, error: null, response: response };
 
 		} catch (error) {
-			return { response: null, error, more: null };
+			return { data: null, error, more: null };
 		}
 
 	}
@@ -165,10 +165,10 @@ class Kichiri {
 				params: query || {},
 			});
 
-			return { response: data, error: null, more: response };
+			return { data: response.data, error: null, response };
 
 		} catch (error) {
-			return { response: null, error, more: null };
+			return { data: null, error, more: null };
 		}
 	}
 
