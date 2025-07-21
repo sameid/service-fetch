@@ -1,6 +1,6 @@
 {
 	"name": "service-fetch",
-	"version": "0.1.6",
+	"version": "0.1.11",
 	"description": "Promise Based wrapper for any Swagger defined API.",
 	"main": "dist/index.js",
 	"repository": {
@@ -15,7 +15,9 @@
 	"homepage": "https://github.com/sameid/service-fetch#readme",
 	"dependencies": {
 		"axios": "0.17.0",
+		"debounce-promise": "^3.1.2",
 		"js-yaml": "3.13.1",
+		"react-hot-toast": "^2.5.2",
 		"underscore": "1.9.0",
 		"with-query": "1.1.2"
 	},

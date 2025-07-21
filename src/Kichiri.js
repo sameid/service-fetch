@@ -5,10 +5,12 @@ import axios from 'axios';
 import _ from 'underscore';
 import withQuery from 'with-query';
 import yaml from 'js-yaml';
+import toaster from 'react-hot-toast';
+import debounce from "debounce-promise";
 
 class Kichiri {
 
-	constructor(yamlString, host, useNativeFetch) {
+	constructor(yamlString, host, useNativeFetch, areToastsEnabled = false) {
 		this.api = {};
 		this.host = null;
 		this.doc = null;
@@ -33,6 +35,7 @@ class Kichiri {
 		}
 
 		this.useNativeFetch = useNativeFetch;
+		this.areToastsEnabled = areToastsEnabled;
 
 		var scheme = json.schemes.indexOf('https') != -1 ? 'https://' : 'http://';
 		this.host = host || (scheme + json.host + (json.basePath || ""));
@@ -119,14 +122,18 @@ class Kichiri {
 		})
 	}
 
-	async performFetchCall({ path, method, data, query, headers }) {
+	async performFetchCall({ path, method, data, query, headers, toast }) {
 		let self = this;
-
-
 		let url = self.host + utils.replaceInPath(path, data);
 		let endpoint = withQuery(url, query);
+		let toastId = null;
 
 		try {
+
+			if (self.areToastsEnabled) {
+				toastId = toaster.loading(toast.loading);
+			}
+
 			let response = await fetch(endpoint, {
 				method: method,
 				headers: headers
@@ -144,31 +151,64 @@ class Kichiri {
 
 			let json = await response.json();
 
+			if (self.areToastsEnabled) {
+				toaster.dismiss(toastId);
+				toaster.success(toast.success);
+			}
+
 			return { data: json, error: null, response: response };
 
 		} catch (error) {
+			if (self.areToastsEnabled) {
+				toaster.dismiss(toastId);
+				toaster.error(toast.error);
+			}
+
 			return { data: null, error, more: null };
 		}
 
 	}
 
-	async performAxiosCall({ path, method, data, query, headers }) {
+	async performAxiosCall({ path, method, data, query, headers, toast }) {
 		let self = this;
 		let url = self.host + utils.replaceInPath(path, data);
+		let loadingToastId = null;
+		let duplicateToastId = null;
 
 		try {
-			let response = await axios({
+
+			if (self.areToastsEnabled) {
+				loadingToastId = toaster.loading(toast.loading);
+			}
+
+			let payload = {
 				method: method,
 				url: url,
 				headers: headers,
 				data: data || {},
-				params: query || {},
-			});
+				params: query || {}
+			};
+
+			duplicateToastId = btoa(JSON.stringify(payload));
+
+            let response = await axios(payload);
+
+			if (self.areToastsEnabled) {
+				toaster.dismiss(loadingToastId);
+				toaster.success(toast.success, { id: duplicateToastId });
+			}
 
 			return { data: response.data, error: null, response };
 
 		} catch (error) {
+
+			if (self.areToastsEnabled) {
+				toaster.dismiss(loadingToastId);
+				toaster.error(toast.error, { id: duplicateToastId });
+			}
+
 			return { data: null, error, more: null };
+
 		}
 	}
 
@@ -183,9 +223,17 @@ class Kichiri {
 	 * @param headers {String} - Token used to authenticate the api back end.
 	 * @return {Promise}
 	 */
-	async trigger({ path, method, params, body, query, authToken, headers = {} }) {
+	async trigger({ path, method, params, body, query, authToken, headers = {}, toast = null, debounce = 500 }) {
 
 		var self = this;
+
+		if (!toast) {
+			toast = {
+				loading: "Loading...",
+				success: "Success!",
+				error: "Error!"
+			};
+		}
 
 		// Merge params and body into data object
 		let data = { ...params, ...body };
@@ -197,13 +245,17 @@ class Kichiri {
 		Object.assign(headers, {
 			'Content-Type': 'application/json',
 			'Authorization': authToken || ""
-		})
+		});
 
 		if (method.toLowerCase() === 'get' && self.useNativeFetch) {
-			return self.performFetchCall({ path, method, data, query, headers });
+			return self.performFetchCall({ path, method, data, query, headers, toast });
 		}
 
-		return self.performAxiosCall({ path, method, data, query, headers });
+        let debounceCall = debounce(({ path, method, data, query, headers, toast }) => {
+            return self.performAxiosCall({ path, method, data, query, headers, toast });
+        }, debounce);
+
+        return debounceCall({ path, method, data, query, headers, toast });
 	}
 
 }

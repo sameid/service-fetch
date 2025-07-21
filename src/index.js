@@ -1,11 +1,12 @@
 'use strict';
 
 import Kichiri from './Kichiri.js';
+import { Toaster } from "react-hot-toast";
 
 let instance = null;
 
-export function loadServices({ apiDoc, host, useNativeFetch }) {
-	instance = new Kichiri(apiDoc, host, useNativeFetch);
+export function loadServices({ apiDoc, host, useNativeFetch, areToastsEnabled = false }) {
+	instance = new Kichiri(apiDoc, host, useNativeFetch, areToastsEnabled);
 	return instance
 }
 
@@ -16,3 +17,5 @@ export function getServices() {
 export function setAuthToken(authToken) {
 	instance.setAuthToken(authToken);
 }
+
+export { Toaster };
