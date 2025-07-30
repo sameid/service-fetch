@@ -1,0 +1,24 @@
+
+
+# Dependency and build output
+node_modules/
+dist/
+build/
+coverage/
+*.min.js
+
+# Vite cache (optional)
+.vite/
+
+# Environment files
+.env*
+!.env.example
+
+# System files
+.DS_Store
+
+# Test snapshots (if using Jest)
+**/__snapshots__/
+
+# Generated files (customize for your project)
+src/generated/

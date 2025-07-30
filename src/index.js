@@ -1,12 +1,12 @@
-'use strict';
+"use strict";
 
-import Kichiri from './Kichiri.js';
+import Kichiri from "./Kichiri.js";
 
 let instance = null;
 
-export function loadServices({ apiDoc, host, useNativeFetch }) {
-	instance = new Kichiri(apiDoc, host, useNativeFetch);
-	return instance
+export function loadServices({ apiDoc, host, useNativeFetch, isSWREnabled = false }) {
+	instance = new Kichiri(apiDoc, host, useNativeFetch, isSWREnabled);
+	return instance;
 }
 
 export function getServices() {

@@ -16,6 +16,7 @@
 	"dependencies": {
 		"axios": "0.17.0",
 		"js-yaml": "3.13.1",
+		"swr": "^2.3.4",
 		"underscore": "1.9.0",
 		"with-query": "1.1.2"
 	},
@@ -25,7 +26,8 @@
 	"devDependencies": {
 		"@babel/cli": "^7.23.9",
 		"@babel/core": "^7.24.0",
-		"@babel/preset-env": "^7.24.0"
+		"@babel/preset-env": "^7.24.0",
+		"prettier": "^3.6.2"
 	},
 	"scripts": {
 		"deploy": "npm run compile; npm publish --access public",
